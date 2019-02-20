@@ -86,6 +86,9 @@ libraryDependencies ++= Seq(
   "com.typesafe"                %  "config"                     % "1.3.2",
   "com.chuusai"                 %% "shapeless"                  % "2.3.3",
   "com.olegpy"                  %% "meow-mtl"                   % "0.2.0",
+  "org.apache.kafka"            % "kafka-streams"               % "2.1.1",
+  "org.apache.kafka"            %% "kafka-streams-scala"        % "2.1.1",
+  "org.apache.kafka"            % "kafka-clients"               % "2.1.1",
   "com.amazonaws"               %  "aws-java-sdk-s3"            % "1.11.192"  % Provided,
   "org.slf4j"                   %  "slf4j-api"                  % "1.7.25",
   "ch.qos.logback"              %  "logback-core"               % "1.2.3"     % Test,
@@ -108,17 +111,11 @@ resolvers ++= Seq(
   Resolver.typesafeRepo(status ="releases"),
   Resolver.sonatypeRepo(status = "releases"),
   Resolver.bintrayRepo(owner = "scalacenter", repo = "releases"),
-  "Artifactory" at "https://hbc.jfrog.io/hbc/sbt-release/"
+  "Confluent" at "https://packages.confluent.io/maven/",
+  MavenRepository("public", Resolver.DefaultMavenRepositoryRoot)
 )
 
 coverageEnabled                   := false
 coverageEnabled in publishLocal   := false
 coverageEnabled in publish        := false
 coverageMinimum                   := 80
-
-releaseVersionBump          := sbtrelease.Version.Bump.Next
-releaseCrossBuild           := true
-releaseIgnoreUntrackedFiles := true
-
-publishTo := Some("Artifactory Realm" at "https://hbc.jfrog.io/hbc/sbt-release/")
-credentials += Credentials("Artifactory Realm", "hbc.jfrog.io", System.getenv("JFROG_USER"), System.getenv("JFROG_PASSWD")) 
