@@ -1,29 +1,32 @@
 package org.omd.kafka.practice
 
-import java.util.Properties
-
+import cats.data.Kleisli
+import cats.implicits._
+import cats.effect.{ExitCode, IO, IOApp}
 import org.apache.kafka.streams.KafkaStreams
-import org.apache.kafka.streams.StreamsConfig.{APPLICATION_ID_CONFIG, BOOTSTRAP_SERVERS_CONFIG}
 import org.apache.kafka.streams.scala.Serdes._
 import org.apache.kafka.streams.scala._
+import org.omd.kafka.practice.settings._
+import org.omd.kafka.practice.streams._
+import scala.concurrent.duration._
 
-object YellingApp {
-  def main(args: Array[String]): Unit = {
-    val builder = new StreamsBuilder()
-    builder.stream[String, String](topic = "src-topic").mapValues { s ⇒
-      println(s"mapping $s ...")
-      s.toUpperCase
-    }.to(topic = "out-topic")
-    new KafkaStreams(builder.build(), props).start()
-    Thread.sleep(600000)
-  }
+import scala.language.postfixOps
 
+object YellingApp extends IOApp {
 
+  override def run(args: List[String]): IO[ExitCode] =
+    IO(streams(Settings("yelling_app_id", "localhost:9092"))).bracket(_.flatMap(execute))(_.flatMap(interrupt) ) map (_ ⇒ ExitCode.Success)
 
-  private def props: Properties = {
-    val props = new Properties()
-    props.put(APPLICATION_ID_CONFIG, "yelling_app_id")
-    props.put(BOOTSTRAP_SERVERS_CONFIG, "localhost:9092")
-    props
+  private def execute(kafkaStreams: KafkaStreams): IO[Unit] = IO(kafkaStreams.start()) *> IO.sleep(duration = 10 minutes)
+
+  private def interrupt(kafkaStreams: KafkaStreams) = IO(kafkaStreams.close())
+
+  private def streams(fromSettings: Settings): IO[KafkaStreams] = for {
+    b ← build.run(new StreamsBuilder())
+    r ← IO(new KafkaStreams(b.build(), fromSettings.props))
+  } yield r
+
+  private def build: Kleisli[IO, StreamsBuilder, StreamsBuilder] = withBuilder[IO] {
+    _.stream[String, String](topic = "src-topic").mapValues { _.toUpperCase }.to(topic = "out-topic")
   }
 }
