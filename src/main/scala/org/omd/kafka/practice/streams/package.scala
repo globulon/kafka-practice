@@ -1,3 +1,3 @@
 package org.omd.kafka.practice
 
-package object streams extends Factories
+package object streams extends Factories with BuildStores
