@@ -8,8 +8,8 @@ import org.apache.kafka.streams.scala.kstream.{Consumed, KStream, KTable, Produc
 private[streams] trait StoreBuilders {
   final type BuildStreams[M[_], A] = StateT[M, StreamsBuilder, A]
 
-  implicit final def buildStream[M[_] : Sync]: BuildStore[M, KStream] = new BuildStore[M, KStream] {
-    override def build[K, V](implicit C: Consumed[K, V]): Topic ⇒ StreamsBuilder ⇒ M[KStream[K, V]] = {
+  implicit final def buildStream[M[_] : Sync]: BuildLogs[M, KStream] = new BuildLogs[M, KStream] {
+    override def read[K, V](implicit C: Consumed[K, V]): Topic ⇒ StreamsBuilder ⇒ M[KStream[K, V]] = {
       case Topic(name) ⇒ b ⇒ Sync[M].delay(b.stream[K, V](name))
     }
 
@@ -18,8 +18,8 @@ private[streams] trait StoreBuilders {
     }
   }
 
-  implicit final def buildTable[M[_] : Sync]: BuildStore[M, KTable] = new BuildStore[M, KTable] {
-    override def build[K, V](implicit C: Consumed[K, V]): Topic ⇒ StreamsBuilder ⇒ M[KTable[K, V]] = {
+  implicit final def buildTable[M[_] : Sync]: BuildLogs[M, KTable] = new BuildLogs[M, KTable] {
+    override def read[K, V](implicit C: Consumed[K, V]): Topic ⇒ StreamsBuilder ⇒ M[KTable[K, V]] = {
       case Topic(name) ⇒ b ⇒ Sync[M].delay(b.table[K, V](name))
     }
 

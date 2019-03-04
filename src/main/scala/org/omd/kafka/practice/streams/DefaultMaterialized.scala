@@ -5,5 +5,5 @@ import org.apache.kafka.streams.processor.StateStore
 import org.apache.kafka.streams.scala.kstream.Materialized
 
 private[streams] trait DefaultMaterialized {
-  implicit final def materialized[K : Serde, V: Serde, S <: StateStore]: Materialized[K, V, S] = Materialized.`with`[K, V, S]
+  implicit final def materialized[K: Serde, V: Serde, S <: StateStore]: Materialized[K, V, S] = Materialized.`with`[K, V, S]
 }
